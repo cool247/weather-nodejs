@@ -3,9 +3,9 @@ const chalk = require("chalk");
 
 //getting location weather report using ordinates
 
-const forecast = coordinates => {
+const forecast = ({ longitude, latitude }, callback) => {
   const darkSkyAPI = {
-    uri: `https://api.darksky.net/forecast/faaafe83368acb8b62172e9a9bf87202/${coordinates.longitude},${coordinates.latitude}?units=si`,
+    uri: `https://api.darksky.net/forecast/faaafe83368acb8b62172e9a9bf87202/${longitude},${latitude}?units=si`,
     headers: {
       "User-Agent": "Request-Promise"
     },
@@ -14,18 +14,18 @@ const forecast = coordinates => {
 
   rp(darkSkyAPI)
     .then(function(repos) {
-      console.log(
-        chalk.inverse(
-          `It is currently ${repos.currently.temperature} degree c out. There is a ${repos.currently.precipProbability}% chance of rain.${repos.timezone}`
-        )
-      );
+      if (repos) {
+        callback(
+          undefined,
+          `${repos.timezone}
+ It is currently ${repos.currently.temperature} degree c out. There is a ${repos.currently.precipProbability}% chance of rain.`
+        );
+      } else {
+        callback("unable to connect", undefined);
+      }
     })
     .catch(function(err) {
-      if (err.name == "RequestError") {
-        console.log("unable to connect to weather service");
-      } else {
-        console.log(err.message);
-      }
+      callback(err.message, undefined);
     });
 };
 
